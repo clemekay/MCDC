@@ -31,6 +31,7 @@ class InputDeck:
             "total": False,
             "current": False,
             "eddington": False,
+            "exit": False,
             "mesh": make_card_mesh(),
         }
 

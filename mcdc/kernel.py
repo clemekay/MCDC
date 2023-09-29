@@ -959,6 +959,14 @@ def surface_bc(P, surface, trans):
 
 
 @njit
+def surface_exit_evaluate(P):
+    if P["surface_ID"] == 0:
+        return 0
+    else:
+        return 1
+
+
+@njit
 def surface_reflect(P, surface, trans):
     ux = P["ux"]
     uy = P["uy"]
@@ -1265,6 +1273,19 @@ def score_tracklength(P, distance, mcdc):
         score_current(s, g, t, x, y, z, flux, P, tally["score"]["current"])
     if tally["eddington"]:
         score_eddington(s, g, t, x, y, z, flux, P, tally["score"]["eddington"])
+
+
+@njit
+def score_exit(P, x, mcdc):
+    tally = mcdc["tally"]
+    material = mcdc["materials"][P["material_ID"]]
+
+    s = P["sensitivity_ID"]
+    mu, azi = mesh_get_angular_index(P, tally["mesh"])
+    g = mesh_get_energy_index(P, tally["mesh"])
+
+    flux = P["w"] / abs(P["ux"])
+    score_flux(s, g, 0, x, 0, 0, mu, azi, flux, tally["score"]["exit"])
 
 
 @njit
@@ -1821,6 +1842,13 @@ def surface_crossing(P, mcdc):
 
     # Record old material for sensitivity quantification
     material_ID_old = P["material_ID"]
+
+    # Tally particle exit
+    if mcdc["tally"]["exit"] and not P["alive"]:
+        # Reflectance if P["surface_ID"] == 0, else transmittance
+        exit_idx = surface_exit_evaluate(P)
+        # Score on tally
+        score_exit(P, exit_idx, mcdc)
 
     # Check new cell?
     if P["alive"] and not surface["reflective"]:
