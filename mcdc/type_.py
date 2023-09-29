@@ -326,6 +326,7 @@ score_list = (
     "total",
     "current",
     "eddington",
+    "exit",
 )
 
 
@@ -356,6 +357,7 @@ def make_type_tally(Ns, card):
         ["total", (Ns, Ng, Nt, Nx, Ny, Nz, Nmu, N_azi)],
         ["current", (Ns, Ng, Nt, Nx, Ny, Nz, 3)],
         ["eddington", (Ns, Ng, Nt, Nx, Ny, Nz, 6)],
+        ["exit", (Ns, Ng, Nt, 2, Ny, Nz, Nmu, N_azi)],
     ]
 
     # Add score flags to structure
