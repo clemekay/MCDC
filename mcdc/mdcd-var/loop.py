@@ -35,9 +35,6 @@ def loop_fixed_source(mcdc):
         if mcdc["setting"]["N_batch"] > 1:
             with objmode():
                 print_header_batch(mcdc)
-            if mcdc["technique"]["uq"]:
-                seed_uq = kernel.split_seed(seed_batch, SEED_SPLIT_UQ)
-                kernel.uq_reset(mcdc, seed_uq)
 
         # Loop over time censuses
         for idx_census in range(mcdc["setting"]["N_census"]):
@@ -68,15 +65,9 @@ def loop_fixed_source(mcdc):
             # Tally history closeout
             kernel.tally_reduce_bin(mcdc)
             kernel.tally_closeout_history(mcdc)
-            # Uq closeout
-            if mcdc["technique"]["uq"]:
-                kernel.uq_tally_closeout_batch(mcdc)
 
     # Tally closeout
-    if mcdc["technique"]["uq"]:
-        kernel.uq_tally_closeout(mcdc)
-    else:
-        kernel.tally_closeout(mcdc)
+    kernel.tally_closeout(mcdc)
 
 
 # =========================================================================
@@ -188,8 +179,8 @@ def loop_source(seed, mcdc):
         if not mcdc["setting"]["mode_eigenvalue"] and mcdc["setting"]["N_batch"] == 1:
             kernel.tally_closeout_history(mcdc)
 
-        # Tally history closeout for multi-batch uq simulation
-        if not mcdc["setting"]["mode_eigenvalue"] and mcdc["technique"]["uq"]:
+        # Tally history closeout for multi-batch fixed-source UQ simulation
+        if not mcdc["setting"]["mode_eigenvalue"] and mcdc["setting"]["UQ"]:
             kernel.uq_tally_closeout_history(mcdc)
 
         # Progress printout

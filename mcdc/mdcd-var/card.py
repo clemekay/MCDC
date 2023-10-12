@@ -16,7 +16,6 @@ class InputDeck:
         self.lattices = []
         self.sources = []
         self.meshes = []
-        self.uq_parameters = []
         # Default cards are set by functions make_card_*
 
         # Root universe
@@ -285,16 +284,4 @@ def make_card_mesh():
         "mu": np.array([-1.0, 1.0]),
         "azi": np.array([-PI, PI]),
         "g": np.array([-INF, INF]),
-    }
-
-
-def make_card_uq():
-    return {
-        "tag": 't',
-        "ID": -1,
-        "key": 'k',
-        "mean": 0.0,
-        "delta": 0.0,
-        "distribution": 'd',
-        "rng_seed": 0,
     }
