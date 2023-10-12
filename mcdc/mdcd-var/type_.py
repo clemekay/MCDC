@@ -445,7 +445,6 @@ def make_type_technique(N_particle, G, card):
         ("iQMC", bool_),
         ("IC_generator", bool_),
         ("branchless_collision", bool_),
-        ("uq", bool_),
     ]
 
     # =========================================================================
@@ -572,93 +571,8 @@ def make_type_technique(N_particle, G, card):
         ("dsm_order", int64),
     ]
 
-    # =========================================================================
-    # Variance Deconvolution
-    # =========================================================================
-    struct += [("uq_tally", uq_tally), ("uq_", uq)]
-
     # Finalize technique type
     technique = np.dtype(struct)
-
-
-# UQ
-def make_type_uq_tally(Ns, tally_card):
-    global uq_tally
-
-    def make_type_uq_score(shape):
-        return np.dtype(
-            [
-                ("batch_bin", float64, shape),
-                ("batch_var", float64, shape),
-            ]
-        )
-
-    # Tally estimator flags
-    struct = []
-
-    # Mesh, but doesn't need to be added
-    mesh, Nx, Ny, Nz, Nt, Nmu, N_azi, Ng = make_type_mesh(tally_card["mesh"])
-
-    # Scores and shapes
-    scores_shapes = [
-        ["flux", (Ns, Ng, Nt, Nx, Ny, Nz, Nmu, N_azi)],
-        ["density", (Ns, Ng, Nt, Nx, Ny, Nz, Nmu, N_azi)],
-        ["fission", (Ns, Ng, Nt, Nx, Ny, Nz, Nmu, N_azi)],
-        ["total", (Ns, Ng, Nt, Nx, Ny, Nz, Nmu, N_azi)],
-        ["current", (Ns, Ng, Nt, Nx, Ny, Nz, 3)],
-        ["eddington", (Ns, Ng, Nt, Nx, Ny, Nz, 6)],
-        ["exit", (Ns, Ng, Nt, 2, Ny, Nz, Nmu, N_azi)],
-    ]
-
-    # Add score flags to structure
-    for i in range(len(scores_shapes)):
-        name = scores_shapes[i][0]
-        struct += [(name, bool_)]
-
-    # Add scores to structure
-    scores_struct = []
-    for i in range(len(scores_shapes)):
-        name = scores_shapes[i][0]
-        shape = scores_shapes[i][1]
-        if not tally_card[name]:
-            shape = (0,) * len(shape)
-        scores_struct += [(name, make_type_uq_score(shape))]
-    scores = np.dtype(scores_struct)
-    struct += [("score", scores)]
-
-    # Make tally structure
-    uq_tally = np.dtype(struct)
-
-
-def make_type_uq(uq_deck):
-    global uq
-
-    def make_type_parameter(shape):
-        return np.dtype(
-            [
-                ("tag", str_),             # nuclides, materials, surfaces, sources
-                ("ID", int64),
-                ("key", str_),
-                ("mean", float64, shape),
-                ("delta", float64, shape),
-                ("distribution", str_),
-                ("rng_seed", uint64),
-            ]
-        )
-
-    struct = [("N_params", int64)]
-    N_uq = len(uq_deck)
-    parameters_struct = []
-    for i in range(N_uq):
-        shape = np.shape(uq_deck[i]["mean"])
-        parameters_struct += [(str(i), make_type_parameter(shape))]
-    parameters = np.dtype(parameters_struct)
-    struct += [("parameters", parameters)]
-    struct += [("names", str_, (N_uq,))]
-    uq = np.dtype(struct)
-
-
-param_names = ["tag", "ID", "key", "mean", "delta", "dist"]
 
 
 # ==============================================================================
@@ -685,7 +599,6 @@ def make_type_global(card):
     J = card.materials[0]["J"]
     N_work = math.ceil(N_particle / MPI.COMM_WORLD.Get_size())
     N_work_precursor = math.ceil(N_precursor / MPI.COMM_WORLD.Get_size())
-    N_uq = len(card.uq_parameters)
 
     # Particle bank types
     bank_active = particle_bank(1 + bank_active_buff)
@@ -844,3 +757,53 @@ def make_type_mesh_(card):
 
 
 mesh_names = ["x", "y", "z", "t", "mu", "azi", "g"]
+
+
+def make_type_tally(Ns, card):
+    global tally
+
+    # Tally estimator flags
+    struct = [("tracklength", bool_)]
+
+    def make_type_score(shape):
+        return np.dtype(
+            [
+                ("bin", float64, shape),
+                ("mean", float64, shape),
+                ("sdev", float64, shape),
+            ]
+        )
+
+    # Mesh
+    mesh, Nx, Ny, Nz, Nt, Nmu, N_azi, Ng = make_type_mesh(card["mesh"])
+    struct += [("mesh", mesh)]
+
+    # Scores and shapes
+    scores_shapes = [
+        ["flux", (Ns, Ng, Nt, Nx, Ny, Nz, Nmu, N_azi)],
+        ["density", (Ns, Ng, Nt, Nx, Ny, Nz, Nmu, N_azi)],
+        ["fission", (Ns, Ng, Nt, Nx, Ny, Nz, Nmu, N_azi)],
+        ["total", (Ns, Ng, Nt, Nx, Ny, Nz, Nmu, N_azi)],
+        ["current", (Ns, Ng, Nt, Nx, Ny, Nz, 3)],
+        ["eddington", (Ns, Ng, Nt, Nx, Ny, Nz, 6)],
+        ["exit", (Ns, Ng, Nt, 2, Ny, Nz, Nmu, N_azi)],
+    ]
+
+    # Add score flags to structure
+    for i in range(len(scores_shapes)):
+        name = scores_shapes[i][0]
+        struct += [(name, bool_)]
+
+    # Add scores to structure
+    scores_struct = []
+    for i in range(len(scores_shapes)):
+        name = scores_shapes[i][0]
+        shape = scores_shapes[i][1]
+        if not card[name]:
+            shape = (0,) * len(shape)
+        scores_struct += [(name, make_type_score(shape))]
+    scores = np.dtype(scores_struct)
+    struct += [("score", scores)]
+
+    # Make tally structure
+    tally = np.dtype(struct)

@@ -168,8 +168,6 @@ def prepare():
     type_.make_type_lattice(input_deck.lattices)
     type_.make_type_source(G)
     type_.make_type_tally(N_tally_scores, input_deck.tally)
-    type_.make_type_uq_tally(N_tally_scores, input_deck.tally)
-    type_.make_type_uq(input_deck.uq_parameters)
     type_.make_type_setting(input_deck)
     type_.make_type_technique(N_particle, G, input_deck.technique)
     type_.make_type_global(input_deck)
@@ -408,20 +406,6 @@ def prepare():
     mcdc["technique"]["dsm_order"] = input_deck.technique["dsm_order"]
 
     # =========================================================================
-    # Variance Deconvolution - UQ
-    # =========================================================================
-    mcdc["technique"]["uq"] = True
-    mcdc["technique"]["uq_"]["N_params"] = len(input_deck.uq_parameters)
-    for name in type_.uq_tally.names:
-        if name != "score":
-            mcdc["technique"]["uq_tally"][name] = input_deck.tally[name]
-
-    for i in range(len(input_deck.uq_parameters)):
-        mcdc["technique"]["uq_"]["names"][i] = str(i)
-        for name in type_.uq["parameters"][0].names:
-            mcdc["technique"]["uq_"]["parameters"][str(i)][name] = input_deck.uq_parameters[i][name]
-
-    # =========================================================================
     # MPI
     # =========================================================================
 
@@ -594,13 +578,6 @@ def generate_hdf5(mcdc):
                         "tally/" + name_h5 + "/sdev",
                         data=np.squeeze(T["score"][name]["sdev"]),
                     )
-                    if mcdc["technique"]["uq_tally"][name]:
-                        mc_var = mcdc["technique"]["uq_tally"]["score"][name]["batch_var"]
-                        tot_var = mcdc["technique"]["uq_tally"]["score"][name]["batch_bin"]
-                        f.create_dataset(
-                            "tally/" + name_h5 + "/uq_var",
-                            data=np.squeeze(tot_var-mc_var),
-                        )
 
             # Eigenvalues
             if mcdc["setting"]["mode_eigenvalue"]:

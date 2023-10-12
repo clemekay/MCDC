@@ -20,7 +20,6 @@ from mcdc.input_ import (
     weight_roulette,
     IC_generator,
     dsm,
-    uq,
     print_card,
     reset_cards,
 )

@@ -17,7 +17,6 @@ from mcdc.card import (
     make_card_universe,
     make_card_lattice,
     make_card_source,
-    make_card_uq,
 )
 from mcdc.constant import (
     GYRATION_RADIUS_ALL,
@@ -1278,71 +1277,6 @@ def dsm(order=1):
     if order > 2:
         print_error("DSM currently only supports up to second-order sensitivities")
     card["dsm_order"] = order
-
-
-def uq(**kw):
-    # Make sure N_batch > 1
-    if mcdc.input_deck.setting["N_batch"] <= 1:
-        print_error("Must set N_batch>1 with mcdc.setting() prior to mcdc.uq() call.")
-
-    # Check uq parameter
-    parameter_ = check_support(
-        "uq parameter",
-        list(kw)[0],
-        ["nuclide", "material", "surface", "source"],
-        False,
-    )
-    parameter = kw[parameter_]
-    del kw[parameter_]
-
-    # Confirm supplied distribution
-    check_requirement("uq", kw, ["distribution"])
-    dist = check_support("distribution", kw['distribution'], ['uniform'], False)
-    del kw['distribution']
-
-    # Only remaining keywords should be the parameter delta(s)
-    if parameter["tag"] == 'Nuclide':
-        parameter_list = ["speed",
-                          "decay",
-                          "total",
-                          "capture",
-                          "scatter",
-                          "fission",
-                          "nu_s",
-                          "nu_f",
-                          "nu_p",
-                          "nu_d",
-                          "chi_s",
-                          "chi_p",
-                          "chi_d"]
-        global_tag = "nuclides"
-    elif parameter['tag'] == 'Material':
-        parameter_list = ["speed",
-                          "decay",
-                          "total",
-                          "capture",
-                          "scatter",
-                          "fission",
-                          "nu_s",
-                          "nu_f",
-                          "nu_p",
-                          "nu_d",
-                          "chi_s",
-                          "chi_p",
-                          "chi_d"]
-        global_tag = "materials"
-    # elif parameter['tag'] is 'Surface':
-    # elif parameter['tag'] is 'Source':
-    for key in kw.keys():
-        check_support(parameter["tag"] + " parameter", key, parameter_list, False)
-        card = make_card_uq()
-        card["tag"] = global_tag
-        card["ID"] = parameter["ID"]
-        card["key"] = key
-        card["mean"] = parameter[key].copy()
-        card["delta"] = kw[key]
-        card["distribution"] = dist
-        mcdc.input_deck.uq_parameters.append(card)
 
 
 # ==============================================================================

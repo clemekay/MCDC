@@ -153,15 +153,6 @@ def rng_from_seed(seed):
     return rng_(seed) / RNG_MOD
 
 
-@njit
-def rng_array(seed, d):
-    xi = np.zeros(d)
-    for i in range(d):
-        xi_seed = split_seed(i, seed)
-        xi[i] = rng_from_seed(xi_seed)
-    return xi
-
-
 # =============================================================================
 # Particle source operations
 # =============================================================================
@@ -3447,90 +3438,26 @@ def binary_search(val, grid):
 
 
 # =============================================================================
-# Variance Deconvolution
+# Variance deconvolution
 # =============================================================================
-
-
-@njit
-def uq_resample(parameter):
-    # Currently only uniform distribution
-    d = len(parameter["mean"])
-    xi = rng_array(parameter["rng_seed"], d)
-
-    if parameter["distribution"] == "uniform":
-        return parameter["mean"] + (2*xi - 1)*parameter["delta"]
-
-
-@njit
-def uq_reset(mcdc, seed):
-    # Loop over number of uq parameters
-    parameters = mcdc["technique"]["uq_"]["parameters"]
-
-    # Numba work-around
-    for idx_param in literal_unroll(mcdc["technique"]["uq_"]["names"]):
-        param = parameters[idx_param]
-#        param["rng_seed"] = split_seed(idx_param, seed)
-#        mcdc[param["tag"]][param["ID"]][param["key"]] = uq_resample(param)
 
 
 @njit
 def uq_tally_closeout_history(mcdc):
     tally = mcdc["tally"]
-    uq_tally = mcdc["technique"]["uq_tally"]
 
     for name in literal_unroll(score_list):
-        if uq_tally[name]:
-            uq_score_closeout_history(tally["score"][name], uq_tally["score"][name])
+        if tally[name]:
+            uq_score_closeout_history(tally["score"][name])
 
 @njit
-def uq_score_closeout_history(score, uq_score):
-    # Assumes N_batch > 1
-    # Accumulate square of history score, but continue to accumulate bin
-    history_bin = score["bin"] - uq_score["batch_bin"]
-    uq_score["batch_var"][:] += history_bin**2
-    uq_score["batch_bin"] = score["bin"]
+def uq_score_closeout_history(score):
+    # Assumes N_batch > 1, so bin is not zeroed after every history
+    # Get bin score from this history
 
+    # Accumulate score and square of score into mean and sdev
+    score["mean"][:] += score["bin"]
+    score["sdev"][:] += np.square(score["bin"])
 
-@njit
-def uq_tally_closeout_batch(mcdc):
-    uq_tally = mcdc["technique"]["uq_tally"]
-
-    for name in literal_unroll(score_list):
-        if uq_tally[name]:
-            # Reset bin
-            uq_tally["score"][name]["batch_bin"].fill(0.0)
-            
-            
-@njit
-def uq_tally_closeout(mcdc):
-    tally = mcdc["tally"]
-    uq_tally = mcdc["technique"]["uq_tally"]
-
-    for name in literal_unroll(score_list):
-        # Uq_tally implies tally, but tally does not imply uq_tally
-        if uq_tally[name]:
-            uq_score_closeout(name, mcdc)
-        elif tally[name]:
-            score_closeout(tally["score"][name], mcdc)
-            
-            
-@njit
-def uq_score_closeout(name, mcdc):
-    score = mcdc["tally"]["score"][name]
-    uq_score = mcdc["technique"]["uq_tally"]["score"][name]
-    
-    N_history = mcdc["setting"]["N_particle"]
-    
-    # At this point, score["sdev"] is still just the sum of the squared mean from every batch
-    uq_score["batch_var"] = (uq_score["batch_var"]/N_history - score["sdev"]) / (N_history - 1)
-
-    # If we're here, N_batch > 1
-    N_history = mcdc["setting"]["N_batch"]
-
-    # Store results
-    score["mean"][:] = score["mean"] / N_history
-    uq_score["batch_var"] /= N_history
-    uq_score["batch_bin"] = (score["sdev"] - N_history*np.square(score["mean"])) / (N_history - 1)
-    score["sdev"][:] = np.sqrt(
-        (score["sdev"] / N_history - np.square(score["mean"])) / (N_history - 1)
-    )
+    # Reset bin
+    score["bin"].fill(0.0)
