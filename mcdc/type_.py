@@ -631,7 +631,7 @@ def make_type_uq_tally(Ns, tally_card):
 
 
 def make_type_uq(uq_deck):
-    global uq
+    global uq, type_group
 
     def make_type_parameter(shape):
         return np.dtype(
@@ -646,19 +646,37 @@ def make_type_uq(uq_deck):
             ]
         )
 
-    struct = [("N_params", int64)]
     N_uq = len(uq_deck)
-    parameters_struct = []
+
+    # Materials and nuclides have two shapes, (G,) and (G, G)
+    for i in range(N_uq):
+        if uq_deck[i]["tag"] in ("materials", "nuclides"):
+            G = len(uq_deck[i]["mean"])
+            break
+        else:
+            G = 0
+    type_group = make_type_parameter((G,))
+    type_group_group = make_type_parameter((G, G))
+
+    N_group = 0
+    N_group_group = 0
     for i in range(N_uq):
         shape = np.shape(uq_deck[i]["mean"])
-        parameters_struct += [(str(i), make_type_parameter(shape))]
-    parameters = np.dtype(parameters_struct)
-    struct += [("parameters", parameters)]
-    struct += [("names", str_, (N_uq,))]
+        if shape == (G,):
+            N_group += 1
+            uq_deck[i]["group"] = True
+        elif shape == (G,G):
+            N_group_group += 1
+            uq_deck[i]["group_group"] = True
+    struct = [("N_group", int64),
+              ("N_group_group", int64),
+              ("group_idx", type_group, (N_group,)),
+              ("groupgroup_idx", type_group_group, (N_group_group,)),
+              ]
     uq = np.dtype(struct)
 
 
-param_names = ["tag", "ID", "key", "mean", "delta", "dist"]
+param_names = ["tag", "ID", "key", "mean", "delta", "distribution", "rng_seed"]
 
 
 # ==============================================================================

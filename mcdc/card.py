@@ -297,4 +297,6 @@ def make_card_uq():
         "delta": 0.0,
         "distribution": 'd',
         "rng_seed": 0,
+        "group" : False,
+        "group_group" : False,
     }

@@ -41,7 +41,7 @@ mcdc.tally(
 
 # Setting
 seed = random.randint(1,1000)
-mcdc.setting(N_particle=1E4, N_batch=2, rng_seed=seed)
+mcdc.setting(N_particle=1E3, N_batch=1E4, rng_seed=seed)
 
 mcdc.uq(material=m1, distribution="uniform", capture=np.array([0.7]))
 mcdc.uq(material=m2, distribution="uniform", capture=np.array([0.12]))
