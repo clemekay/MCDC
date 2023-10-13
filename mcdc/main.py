@@ -308,6 +308,7 @@ def prepare():
         "iQMC",
         "IC_generator",
         "branchless_collision",
+        "uq",
     ]:
         mcdc["technique"][name] = input_deck.technique[name]
 
