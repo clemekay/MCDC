@@ -649,12 +649,11 @@ def make_type_uq(uq_deck):
     N_uq = len(uq_deck)
 
     # Materials and nuclides have two shapes, (G,) and (G, G)
+    G = 0
     for i in range(N_uq):
         if uq_deck[i]["tag"] in ("materials", "nuclides"):
             G = len(uq_deck[i]["mean"])
             break
-        else:
-            G = 0
     type_group = make_type_parameter((G,))
     type_group_group = make_type_parameter((G, G))
 
