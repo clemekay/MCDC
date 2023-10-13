@@ -154,11 +154,12 @@ def rng_from_seed(seed):
 
 
 @njit
-def rng_array(seed, d):
-    xi = np.zeros(d)
-    for i in range(d):
+def rng_array(seed, shape, size):
+    xi = np.zeros(size)
+    for i in range(size):
         xi_seed = split_seed(i, seed)
         xi[i] = rng_from_seed(xi_seed)
+    xi.reshape(shape)
     return xi
 
 
@@ -3454,23 +3455,36 @@ def binary_search(val, grid):
 @njit
 def uq_resample(parameter):
     # Currently only uniform distribution
-    d = len(parameter["mean"])
-    xi = rng_array(parameter["rng_seed"], d)
+    shape = parameter["mean"].shape
+    size = parameter["mean"].size
+    xi = rng_array(parameter["rng_seed"], shape, size)
 
-    if parameter["distribution"] == "uniform":
-        return parameter["mean"] + (2*xi - 1)*parameter["delta"]
+    return parameter["mean"] + (2*xi - 1)*parameter["delta"]
+
+
+@njit
+def uq_reset_material(param, mcdc):
+    material = mcdc["materials"][param["ID"]]
+    # Assumes just capture xsec for now
+    capture = uq_resample(param)
+    for key in literal_unroll(("capture",)):
+        material[key] = capture
+    for key in literal_unroll(("total",)):
+        # No scatter or fission for now
+        material[key] = capture
 
 
 @njit
 def uq_reset(mcdc, seed):
-    # Loop over number of uq parameters
-    parameters = mcdc["technique"]["uq_"]["parameters"]
-
-    # Numba work-around
-    for idx_param in literal_unroll(mcdc["technique"]["uq_"]["names"]):
-        param = parameters[idx_param]
-#        param["rng_seed"] = split_seed(idx_param, seed)
-#        mcdc[param["tag"]][param["ID"]][param["key"]] = uq_resample(param)
+    # Loop over uq parameters based on shape
+    parameters = mcdc["technique"]["uq_"]
+    g_list = ("capture", "scatter", "fission", "nu_s", "nu_p", "chi_d", "speed", "decay")
+    gg_list = ("chi_p")
+    for idx_param in range(parameters["N_group"]):
+        param = parameters["group_idx"][idx_param]
+        param["rng_seed"] = split_seed(idx_param, seed)
+        if param["tag"] == "materials":
+            uq_reset_material(param, mcdc)
 
 
 @njit

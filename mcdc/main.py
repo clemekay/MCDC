@@ -411,15 +411,25 @@ def prepare():
     # Variance Deconvolution - UQ
     # =========================================================================
     mcdc["technique"]["uq"] = True
-    mcdc["technique"]["uq_"]["N_params"] = len(input_deck.uq_parameters)
+    N_uq = len(input_deck.uq_parameters)
     for name in type_.uq_tally.names:
         if name != "score":
             mcdc["technique"]["uq_tally"][name] = input_deck.tally[name]
 
-    for i in range(len(input_deck.uq_parameters)):
-        mcdc["technique"]["uq_"]["names"][i] = str(i)
-        for name in type_.uq["parameters"][0].names:
-            mcdc["technique"]["uq_"]["parameters"][str(i)][name] = input_deck.uq_parameters[i][name]
+    g = 0
+    gg = 0
+    for parameter in input_deck.uq_parameters:
+        if parameter["group"]:
+            for name in type_.type_group.names:
+                mcdc["technique"]["uq_"]["group_idx"][g][name] = input_deck.uq_parameters[g][name]
+            g += 1
+        elif parameter["group_group"]:
+            for name in param_names:
+                mcdc["technique"]["uq_"]["groupgroup_idx"][gg][name] = input_deck.uq_parameters[gg][name]
+            gg += 1
+    mcdc["technique"]["uq_"]["N_group"] = g
+    mcdc["technique"]["uq_"]["N_group_group"] = gg
+
 
     # =========================================================================
     # MPI
