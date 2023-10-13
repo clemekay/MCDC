@@ -118,6 +118,7 @@ class InputDeck:
             "IC_cycle_stretch": 1.0,
             "branchless_collision": False,
             "dsm_order": 1,
+            "uq": False,
         }
 
 

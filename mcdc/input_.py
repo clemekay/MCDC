@@ -1281,6 +1281,7 @@ def dsm(order=1):
 
 
 def uq(**kw):
+    mcdc.input_deck.technique["uq"] = True
     # Make sure N_batch > 1
     if mcdc.input_deck.setting["N_batch"] <= 1:
         print_error("Must set N_batch>1 with mcdc.setting() prior to mcdc.uq() call.")

@@ -190,7 +190,7 @@ def loop_source(seed, mcdc):
             kernel.tally_closeout_history(mcdc)
 
         # Tally history closeout for multi-batch uq simulation
-        if not mcdc["setting"]["mode_eigenvalue"] and mcdc["technique"]["uq"]:
+        if mcdc["technique"]["uq"]:
             kernel.uq_tally_closeout_history(mcdc)
 
         # Progress printout

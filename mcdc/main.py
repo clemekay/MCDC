@@ -15,7 +15,7 @@ args, unargs = parser.parse_known_args()
 #   TODO: Will be inside run() once Python/Numba adapter is integrated
 mode = args.mode
 if mode == "python":
-    nb.config.DISABLE_JIT = False
+    nb.config.DISABLE_JIT = True
 elif mode == "numba":
     nb.config.DISABLE_JIT = False
 
@@ -410,25 +410,25 @@ def prepare():
     # =========================================================================
     # Variance Deconvolution - UQ
     # =========================================================================
-    mcdc["technique"]["uq"] = True
-    N_uq = len(input_deck.uq_parameters)
-    for name in type_.uq_tally.names:
-        if name != "score":
-            mcdc["technique"]["uq_tally"][name] = input_deck.tally[name]
+    if mcdc["technique"]["uq"]:
+        N_uq = len(input_deck.uq_parameters)
+        for name in type_.uq_tally.names:
+            if name != "score":
+                mcdc["technique"]["uq_tally"][name] = input_deck.tally[name]
 
-    g = 0
-    gg = 0
-    for parameter in input_deck.uq_parameters:
-        if parameter["group"]:
-            for name in type_.type_group.names:
-                mcdc["technique"]["uq_"]["group_idx"][g][name] = input_deck.uq_parameters[g][name]
-            g += 1
-        elif parameter["group_group"]:
-            for name in param_names:
-                mcdc["technique"]["uq_"]["groupgroup_idx"][gg][name] = input_deck.uq_parameters[gg][name]
-            gg += 1
-    mcdc["technique"]["uq_"]["N_group"] = g
-    mcdc["technique"]["uq_"]["N_group_group"] = gg
+        g = 0
+        gg = 0
+        for parameter in input_deck.uq_parameters:
+            if parameter["group"]:
+                for name in type_.type_group.names:
+                    mcdc["technique"]["uq_"]["group_idx"][g][name] = input_deck.uq_parameters[g][name]
+                g += 1
+            elif parameter["group_group"]:
+                for name in param_names:
+                    mcdc["technique"]["uq_"]["groupgroup_idx"][gg][name] = input_deck.uq_parameters[gg][name]
+                gg += 1
+        mcdc["technique"]["uq_"]["N_group"] = g
+        mcdc["technique"]["uq_"]["N_group_group"] = gg
 
 
     # =========================================================================
