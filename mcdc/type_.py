@@ -143,6 +143,7 @@ def make_type_nuclide(G, J):
             ("sensitivity", bool_),
             ("sensitivity_ID", int64),
             ("dsm_Np", float64),
+            ("uq", bool_),
         ]
     )
 
@@ -169,6 +170,7 @@ def make_type_material(G, J, Nmax_nuclide):
             ("chi_s", float64, (G, G)),
             ("chi_p", float64, (G, G)),
             ("sensitivity", bool_),
+            ("uq", bool_),
         ]
     )
 
@@ -630,49 +632,65 @@ def make_type_uq_tally(Ns, tally_card):
     uq_tally = np.dtype(struct)
 
 
-def make_type_uq(uq_deck):
-    global uq, type_group
+def make_type_uq(uq_deck, G, J):
+    global uq, uq_nuc, uq_mat
 
-    def make_type_parameter(shape):
-        return np.dtype(
-            [
-                ("tag", str_),             # nuclides, materials, surfaces, sources
-                ("ID", int64),
-                ("key", str_),
-                ("mean", float64, shape),
-                ("delta", float64, shape),
-                ("distribution", str_),
-                ("rng_seed", uint64),
-            ]
-        )
+#    def make_type_parameter(shape):
+#        return np.dtype(
+#            [
+#                ("tag", str_),             # nuclides, materials, surfaces, sources
+#                ("ID", int64),
+#                ("key", str_),
+#                ("mean", float64, shape),
+#                ("delta", float64, shape),
+#                ("distribution", str_),
+#                ("rng_seed", uint64),
+#            ]
+#        )
 
-    N_uq = len(uq_deck)
+    def make_type_parameter(G, J, decay=False):
+        # Fields are things that can have deltas
+        struct = [("speed", float64, (G,)),
+                  ("capture", float64, (G,)),
+                  ("scatter", float64, (G, G)),
+                  ("fission", float64, (G,)),
+                  ("nu_s", float64, (G,)),
+                  ("nu_p", float64, (G,)),
+                  ("nu_d", float64, (G, J)),
+                  ("chi_p", float64, (G, G))]
+        struct += [("decay", float64, (J,)),
+                   ("chi_d", float64, (J, G))]
+        return np.dtype(struct)
 
-    # Materials and nuclides have two shapes, (G,) and (G, G)
-    G = 0
-    for i in range(N_uq):
-        if uq_deck[i]["tag"] in ("materials", "nuclides"):
-            G = len(uq_deck[i]["mean"])
-            break
-    type_group = make_type_parameter((G,))
-    type_group_group = make_type_parameter((G, G))
+    uq_nuc = make_type_parameter(G, J, True)
+    uq_mat = make_type_parameter(G, J)
 
-    N_group = 0
-    N_group_group = 0
-    for i in range(N_uq):
-        shape = np.shape(uq_deck[i]["mean"])
-        if shape == (G,):
-            N_group += 1
-            uq_deck[i]["group"] = True
-        elif shape == (G,G):
-            N_group_group += 1
-            uq_deck[i]["group_group"] = True
-    struct = [("N_group", int64),
-              ("N_group_group", int64),
-              ("group_idx", type_group, (N_group,)),
-              ("groupgroup_idx", type_group_group, (N_group_group,)),
-              ]
-    uq = np.dtype(struct)
+    flags = np.dtype([("speed", bool_),
+                      ("decay", bool_),
+                      ("total", bool_),
+                      ("capture", bool_),
+                      ("scatter", bool_),
+                      ("fission", bool_),
+                      ("nu_s", bool_),
+                      ("nu_f", bool_),
+                      ("nu_p", bool_),
+                      ("nu_d", bool_),
+                      ("chi_s", bool_),
+                      ("chi_p", bool_),
+                      ("chi_d", bool_)])
+    info = np.dtype([("distribution", str_),
+                     ("ID", int64),
+                     ("rng_seed", uint64)])
+
+    container = np.dtype([("mean", uq_nuc),
+                          ("delta", uq_mat),
+                          ("flags", flags),
+                          ("info", info)])
+
+    N_nuclide = len(uq_deck["nuclides"])
+    N_material = len(uq_deck["materials"])
+    uq = np.dtype([("nuclides", container, (N_nuclide,)),
+                   ("materials", container, (N_material,))])
 
 
 param_names = ["tag", "ID", "key", "mean", "delta", "distribution", "rng_seed"]
@@ -702,7 +720,6 @@ def make_type_global(card):
     J = card.materials[0]["J"]
     N_work = math.ceil(N_particle / MPI.COMM_WORLD.Get_size())
     N_work_precursor = math.ceil(N_precursor / MPI.COMM_WORLD.Get_size())
-    N_uq = len(card.uq_parameters)
 
     # Particle bank types
     bank_active = particle_bank(1 + bank_active_buff)
