@@ -15,4 +15,7 @@ print('Var total: ' +  str(total))
 print('param error: ' + str(abs(exact-varp)))
 print('total error: ' + str(abs(exact-total)))
 
+print('mean: ' + str(mean))
+print('relative error: ' + str(sdev))
+print(str(sdev/mean*100) + '%')
 f.close()

@@ -16,7 +16,6 @@ class InputDeck:
         self.lattices = []
         self.sources = []
         self.meshes = []
-        self.uq_parameters = []
         # Default cards are set by functions make_card_*
 
         # Root universe
@@ -121,6 +120,13 @@ class InputDeck:
             "uq": False,
         }
 
+        self.uq_deltas = {
+            "tag": "Uq",
+            "nuclides": [],
+            "materials": [],
+            "surfaces": [],
+        }
+
 
 class SurfaceHandle:
     def __init__(self, card):
@@ -155,6 +161,7 @@ def make_card_nuclide(G, J):
     card["sensitivity"] = False
     card["sensitivity_ID"] = 0
     card["dsm_Np"] = 1.0
+    card["uq"] = False
     return card
 
 
@@ -179,6 +186,7 @@ def make_card_material(N_nuclide, G, J):
     card["chi_s"] = np.zeros([G, G])
     card["chi_p"] = np.zeros([G, G])
     card["sensitivity"] = False
+    card["uq"] = False
     return card
 
 
