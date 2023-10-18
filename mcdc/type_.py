@@ -423,6 +423,7 @@ def make_type_setting(deck):
         ("N_precursor", uint64),
         # TODO: Move to technique
         ("N_sensitivity", uint64),
+        ("multi_run", bool_),
     ]
 
     # Finalize setting type

@@ -3641,15 +3641,21 @@ def uq_score_closeout(name, mcdc):
     N_history = mcdc["setting"]["N_particle"]
     
     # At this point, score["sdev"] is still just the sum of the squared mean from every batch
-    uq_score["batch_var"] = (uq_score["batch_var"]/N_history - score["sdev"]) / (N_history - 1)
+    # Multi-run means the user will be manually combining batches after completion
+    # batch_var remains sum of squared tallies, batch_bin becomes sum of squared means
+    if not mcdc["setting"]["multi_run"]:
+        uq_score["batch_var"] = (uq_score["batch_var"]/N_history - score["sdev"]) / (N_history - 1)
 
     # If we're here, N_batch > 1
     N_history = mcdc["setting"]["N_batch"]
 
     # Store results
     score["mean"][:] = score["mean"] / N_history
-    uq_score["batch_var"] /= N_history
-    uq_score["batch_bin"] = (score["sdev"] - N_history*np.square(score["mean"])) / (N_history - 1)
+    if mcdc["setting"]["multi_run"]:
+        uq_score["batch_bin"] = score["sdev"].copy()
+    else:
+        uq_score["batch_var"] /= N_history
+        uq_score["batch_bin"] = (score["sdev"] - N_history*np.square(score["mean"])) / (N_history - 1)
     score["sdev"][:] = np.sqrt(
         (score["sdev"] / N_history - np.square(score["mean"])) / (N_history - 1)
     )

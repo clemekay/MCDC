@@ -626,12 +626,16 @@ def generate_hdf5(mcdc):
                         data=np.squeeze(T["score"][name]["sdev"]),
                     )
                     if mcdc["technique"]["uq_tally"][name]:
-                        mc_var = mcdc["technique"]["uq_tally"]["score"][name]["batch_var"]
-                        tot_var = mcdc["technique"]["uq_tally"]["score"][name]["batch_bin"]
-                        f.create_dataset(
-                            "tally/" + name_h5 + "/uq_var",
-                            data=np.squeeze(tot_var-mc_var),
-                        )
+                        if mcdc["setting"]["multi_run"]:
+                            f.create_dataset("tally/" + name_h5 + "/tally_sq",
+                                             data=np.squeeze(mcdc["technique"]["uq_tally"]["score"][name]["batch_var"]))
+                            f.create_dataset("tally/" + name_h5 + "/mean_sq",
+                                             data = np.squeeze(mcdc["technique"]["uq_tally"]["score"][name]["batch_bin"]))
+                        else:
+                            mc_var = mcdc["technique"]["uq_tally"]["score"][name]["batch_var"]
+                            tot_var = mcdc["technique"]["uq_tally"]["score"][name]["batch_bin"]
+                            f.create_dataset("tally/" + name_h5 + "/uq_var",
+                                             data=np.squeeze(tot_var-mc_var))
 
             # Eigenvalues
             if mcdc["setting"]["mode_eigenvalue"]:

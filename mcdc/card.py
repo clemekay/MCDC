@@ -65,6 +65,7 @@ class InputDeck:
             "bank_census_buff": 1.0,
             # TODO: Move to technique
             "N_sensitivity": 0,
+            "multi_run": False,
         }
 
         self.technique = {

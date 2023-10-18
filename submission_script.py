@@ -41,7 +41,7 @@ def submit_mcdc(seed, output):
     )
 
     # Setting
-    mcdc.setting(N_particle=1E3, N_batch=1E3, rng_seed=seed, output_name=output)
+    mcdc.setting(N_particle=1E1, N_batch=1E3, rng_seed=seed, multi_run=True, output_name=output)
 
     mcdc.uq(material=m1, distribution="uniform", capture=np.array([0.7]))
     mcdc.uq(material=m2, distribution="uniform", capture=np.array([0.12]))
@@ -53,5 +53,5 @@ def submit_mcdc(seed, output):
 
 for i in range(10):
     seed = np.random.randint(10000000)
-    output = 'output' + str(i)
+    output = 'multi' + str(i)
     submit_mcdc(seed, output)

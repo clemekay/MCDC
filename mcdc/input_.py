@@ -892,6 +892,7 @@ def setting(**kw):
                 "IC_file",
                 "active_bank_buff",
                 "census_bank_buff",
+                "multi_run",
             ],
             False,
         )
@@ -910,6 +911,7 @@ def setting(**kw):
     IC_file = kw.get("IC_file")
     bank_active_buff = kw.get("active_bank_buff")
     bank_census_buff = kw.get("census_bank_buff")
+    multi_run = kw.get("multi_run")
 
     # Check if setting card has been initialized
     card = mcdc.input_deck.setting
@@ -984,6 +986,9 @@ def setting(**kw):
     # TODO: Allow both source and IC files
     if IC_file and source_file:
         print_error("Using both source and IC files is not supported yet.")
+
+    if multi_run is not None:
+        card["multi_run"] = multi_run
 
 
 def eigenmode(
