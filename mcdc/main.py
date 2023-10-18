@@ -439,7 +439,7 @@ def prepare():
         for i in range(N):
             mcdc["technique"]["uq_"]["nuclides"][i]["info"]["distribution"] = input_deck.uq_deltas["nuclides"][i]["distribution"]
             idn = input_deck.uq_deltas["nuclides"][i]["ID"]
-            mcdc["technique"]["uq_"]["materials"][i]["info"]["ID"] = idn
+            mcdc["technique"]["uq_"]["nuclides"][i]["info"]["ID"] = idn
             for name in type_.uq_nuc.names:
                 mcdc["technique"]["uq_"]["nuclides"][i]["mean"][name] = input_deck.nuclides[idn][name]
             for name in input_deck.uq_deltas["nuclides"][i]["flags"]:
