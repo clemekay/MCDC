@@ -299,13 +299,13 @@ def make_card_mesh():
 
 def make_card_uq():
     return {
-        "tag": 't',
+        "tag": "t",
         "ID": -1,
-        "key": 'k',
+        "key": "k",
         "mean": 0.0,
         "delta": 0.0,
-        "distribution": 'd',
+        "distribution": "d",
         "rng_seed": 0,
-        "group" : False,
-        "group_group" : False,
+        "group": False,
+        "group_group": False,
     }

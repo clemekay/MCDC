@@ -635,62 +635,65 @@ def make_type_uq_tally(Ns, tally_card):
 def make_type_uq(uq_deck, G, J):
     global uq, uq_nuc, uq_mat
 
-#    def make_type_parameter(shape):
-#        return np.dtype(
-#            [
-#                ("tag", str_),             # nuclides, materials, surfaces, sources
-#                ("ID", int64),
-#                ("key", str_),
-#                ("mean", float64, shape),
-#                ("delta", float64, shape),
-#                ("distribution", str_),
-#                ("rng_seed", uint64),
-#            ]
-#        )
+    #    def make_type_parameter(shape):
+    #        return np.dtype(
+    #            [
+    #                ("tag", str_),             # nuclides, materials, surfaces, sources
+    #                ("ID", int64),
+    #                ("key", str_),
+    #                ("mean", float64, shape),
+    #                ("delta", float64, shape),
+    #                ("distribution", str_),
+    #                ("rng_seed", uint64),
+    #            ]
+    #        )
 
     def make_type_parameter(G, J, decay=False):
         # Fields are things that can have deltas
-        struct = [("speed", float64, (G,)),
-                  ("capture", float64, (G,)),
-                  ("scatter", float64, (G, G)),
-                  ("fission", float64, (G,)),
-                  ("nu_s", float64, (G,)),
-                  ("nu_p", float64, (G,)),
-                  ("nu_d", float64, (G, J)),
-                  ("chi_p", float64, (G, G))]
-        struct += [("decay", float64, (J,)),
-                   ("chi_d", float64, (J, G))]
+        struct = [
+            ("speed", float64, (G,)),
+            ("capture", float64, (G,)),
+            ("scatter", float64, (G, G)),
+            ("fission", float64, (G,)),
+            ("nu_s", float64, (G,)),
+            ("nu_p", float64, (G,)),
+            ("nu_d", float64, (G, J)),
+            ("chi_p", float64, (G, G)),
+        ]
+        struct += [("decay", float64, (J,)), ("chi_d", float64, (J, G))]
         return np.dtype(struct)
 
     uq_nuc = make_type_parameter(G, J, True)
     uq_mat = make_type_parameter(G, J)
 
-    flags = np.dtype([("speed", bool_),
-                      ("decay", bool_),
-                      ("total", bool_),
-                      ("capture", bool_),
-                      ("scatter", bool_),
-                      ("fission", bool_),
-                      ("nu_s", bool_),
-                      ("nu_f", bool_),
-                      ("nu_p", bool_),
-                      ("nu_d", bool_),
-                      ("chi_s", bool_),
-                      ("chi_p", bool_),
-                      ("chi_d", bool_)])
-    info = np.dtype([("distribution", str_),
-                     ("ID", int64),
-                     ("rng_seed", uint64)])
+    flags = np.dtype(
+        [
+            ("speed", bool_),
+            ("decay", bool_),
+            ("total", bool_),
+            ("capture", bool_),
+            ("scatter", bool_),
+            ("fission", bool_),
+            ("nu_s", bool_),
+            ("nu_f", bool_),
+            ("nu_p", bool_),
+            ("nu_d", bool_),
+            ("chi_s", bool_),
+            ("chi_p", bool_),
+            ("chi_d", bool_),
+        ]
+    )
+    info = np.dtype([("distribution", str_), ("ID", int64), ("rng_seed", uint64)])
 
-    container = np.dtype([("mean", uq_nuc),
-                          ("delta", uq_mat),
-                          ("flags", flags),
-                          ("info", info)])
+    container = np.dtype(
+        [("mean", uq_nuc), ("delta", uq_mat), ("flags", flags), ("info", info)]
+    )
 
     N_nuclide = len(uq_deck["nuclides"])
     N_material = len(uq_deck["materials"])
-    uq = np.dtype([("nuclides", container, (N_nuclide,)),
-                   ("materials", container, (N_material,))])
+    uq = np.dtype(
+        [("nuclides", container, (N_nuclide,)), ("materials", container, (N_material,))]
+    )
 
 
 param_names = ["tag", "ID", "key", "mean", "delta", "distribution", "rng_seed"]
