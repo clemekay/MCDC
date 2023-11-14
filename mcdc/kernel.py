@@ -3618,6 +3618,16 @@ def uq_tally_closeout_batch(mcdc):
         if uq_tally[name]:
             # Reset bin
             uq_tally["score"][name]["batch_bin"].fill(0.0)
+            uq_reduce_bin(uq_tally["score"][name])
+
+
+@njit
+def uq_reduce_bin(score):
+    # MPI Reduce
+    buff = np.zeros_like(score["batch_var"])
+    with objmode():
+        MPI.COMM_WORLD.Reduce(np.array(score["batch_var"]), buff, MPI.SUM, 0)
+    score["batch_var"][:] = buff
             
             
 @njit
