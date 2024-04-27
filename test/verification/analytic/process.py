@@ -3,6 +3,9 @@ import os
 from task import task
 
 
+if not os.path.exists("results"):
+    os.makedirs("results")
+
 for name in task.keys():
     os.chdir(name)
     N_min = task[name]["N_lim"][0]

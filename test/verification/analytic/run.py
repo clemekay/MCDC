@@ -16,7 +16,7 @@ srun = args.srun
 # =============================================================================
 
 
-def run(N_hist, name):
+def run(N_hist, name, N_batch=1):
     """
     N_hist: number of histories
     name: name for the job
@@ -35,8 +35,8 @@ def run(N_hist, name):
         )
     else:
         os.system(
-            "python input.py --mode=numba --N_particle=%i --output=%s"
-            % (N_hist, output)
+            "python input.py --mode=numba --N_particle=%i --output=%s --N_batch=%i"
+            % (N_hist, output, N_batch)
         )
 
 

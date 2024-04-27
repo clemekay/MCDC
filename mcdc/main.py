@@ -15,6 +15,7 @@ parser.add_argument("--N_particle", type=int, help="Number of particles")
 parser.add_argument("--output", type=str, help="Output file name")
 parser.add_argument("--progress_bar", default=True, action="store_true")
 parser.add_argument("--no-progress_bar", dest="progress_bar", action="store_false")
+parser.add_argument("--N_batch", type=int, help="Number of batches")
 args, unargs = parser.parse_known_args()
 
 from mcdc.print_ import (
@@ -97,6 +98,8 @@ def run():
         input_deck.setting["output_name"] = args.output
     if args.progress_bar is not None:
         input_deck.setting["progress_bar"] = args.progress_bar
+    if args.N_batch is not None:
+        input_deck.setting["N_batch"] = args.N_batch
 
     # Start timer
     total_start = MPI.Wtime()
