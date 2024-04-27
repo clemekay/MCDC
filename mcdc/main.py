@@ -859,6 +859,8 @@ def dictlist_to_h5group(dictlist, input_group, name):
 
 def dict_to_h5group(dict_, group):
     for k, v in dict_.items():
+        if k == 'uq':
+            x = 1
         if type(v) == dict:
             dict_to_h5group(dict_[k], group.create_group(k))
         elif v is None:
@@ -886,9 +888,7 @@ def generate_hdf5(mcdc):
                 dictlist_to_h5group(input_deck.sources, input_group, "source")
                 dict_to_h5group(input_deck.tally, input_group.create_group("tally"))
                 dict_to_h5group(input_deck.setting, input_group.create_group("setting"))
-                dict_to_h5group(
-                    input_deck.technique, input_group.create_group("technique")
-                )
+                dict_to_h5group(input_deck.technique, input_group.create_group("technique"))
 
             # Tally
             T = mcdc["tally"]

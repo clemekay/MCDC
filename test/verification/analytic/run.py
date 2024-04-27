@@ -46,11 +46,14 @@ def run(N_hist, name, N_batch=1):
 
 for name in task.keys():
     os.chdir(name)
-    N_min = task[name]["N_lim"][0]
-    N_max = task[name]["N_lim"][1]
-    N = task[name]["N"]
-    for N_hist in np.logspace(N_min, N_max, N):
-        N_hist = int(N_hist)
-        print(name, N_hist)
-        run(N_hist, name)
-    os.chdir(r"..")
+    if "N_batch" in task[name]:
+            x = 1
+    else:
+        N_min = task[name]["N_lim"][0]
+        N_max = task[name]["N_lim"][1]
+        N = task[name]["N"]
+        for N_hist in np.logspace(N_min, N_max, N):
+            N_hist = int(N_hist)
+            print(name, N_hist)
+            run(N_hist, name)
+        os.chdir(r"..")
