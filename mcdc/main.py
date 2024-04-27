@@ -859,8 +859,6 @@ def dictlist_to_h5group(dictlist, input_group, name):
 
 def dict_to_h5group(dict_, group):
     for k, v in dict_.items():
-        if k == 'uq':
-            x = 1
         if type(v) == dict:
             dict_to_h5group(dict_[k], group.create_group(k))
         elif v is None:
@@ -1017,6 +1015,12 @@ def generate_hdf5(mcdc):
                 f.create_dataset(
                     "IC/fission", data=mcdc["technique"]["IC_fission"] / Nn
                 )
+
+            if mcdc["technique"]["uq"]:
+                del f['input_deck/technique/uq']
+                uq_group = f.create_group('input_deck/technique/uq')
+                dictlist_to_h5group(input_deck.uq_deltas["nuclides"], uq_group, "nuclide")
+                dictlist_to_h5group(input_deck.uq_deltas["materials"], uq_group, "material")
 
     # Save particle?
     if mcdc["setting"]["save_particle"]:
