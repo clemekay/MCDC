@@ -20,8 +20,12 @@ def run(N_hist, name, N_batch=1):
     """
     N_hist: number of histories
     name: name for the job
+    N_batch: number of batches
     """
-    output = "output_%i" % N_hist
+    if N_batch == 1:
+        output = "output_%i" % N_hist
+    else:
+        output = "output_%i_%i" % (N_hist, N_batch)
 
     if srun > 1:
         os.system(
@@ -46,14 +50,28 @@ def run(N_hist, name, N_batch=1):
 
 for name in task.keys():
     os.chdir(name)
+    N = task[name]["N"]
     if "N_batch" in task[name]:
-            x = 1
+        N_hist = int(10**int(task[name]["N_lim"][0]))
+        N_min = task[name]["N_batch"][0]
+        N_max = task[name]["N_batch"][1]
+        for N_batch in np.logspace(N_min, N_max, N):
+            N_batch = int(N_batch)
+            print("N_batch %i" % N_batch)
+            run(N_hist, name, N_batch)
+        N_batch = int(10**int(task[name]["N_batch"][0]))
+        N_min = task[name]["N_lim"][0]
+        N_max = task[name]["N_lim"][1]
+        hist_list = np.logspace(N_min, N_max, N)
+        for i in range(1, N):
+            N_hist = int(hist_list[i])
+            print("N_hist %i" % N_hist)
+            run(N_hist, name, N_batch)
     else:
         N_min = task[name]["N_lim"][0]
         N_max = task[name]["N_lim"][1]
-        N = task[name]["N"]
         for N_hist in np.logspace(N_min, N_max, N):
             N_hist = int(N_hist)
             print(name, N_hist)
             run(N_hist, name)
-        os.chdir(r"..")
+    os.chdir(r"..")
