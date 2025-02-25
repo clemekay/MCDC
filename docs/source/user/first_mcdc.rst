@@ -242,7 +242,7 @@ and ``f['tally'].keys()`` will return
 
     <KeysViewHDF5 ['current', 'flux', 'grid']>
 
-If needed, you can look around a ``.h5`` file using something like `h5Viewer <https://www.hdfgroup.org/downloads/>`_ (which on linux can be installed with ``sudo apt-get install hdfview``).
+If needed, you can look around a ``.h5`` file using something like `h5Viewer <https://www.hdfgroup.org/download-hdfview/>`_ (which on linux can be installed with ``sudo apt-get install hdfview``).
 Otherwise these arrays can then be manipulated and modified like any other.
 Results are stored as NumPy arrays, so any tool that works with NumPy arrays (*e.g.*, SciPy and Pandas)
 can be used to analyze the data from your simulations.
